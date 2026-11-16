@@ -47,17 +47,6 @@ const errorMessage = result.ok ? '' : result.message
     )
   }
 
-  {
-    result.ok && result.source === 'sanity' && (
-      <Notice tone="sanity" title="Published from Sanity">
-        <p>
-          These cities come from your dataset. Tips marked Example are still the sample copy from
-          the seed until you rewrite them.
-        </p>
-      </Notice>
-    )
-  }
-
   <section id="cities" aria-labelledby="cities-heading">
     <div class="section-heading">
       <h2 id="cities-heading">Layover cities</h2>
