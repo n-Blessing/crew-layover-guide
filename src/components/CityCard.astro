@@ -1,0 +1,19 @@
+---
+import type {CitiesQueryResult} from '../sanity/sanity.types'
+
+interface Props {
+  city: CitiesQueryResult[number]
+}
+
+const {city} = Astro.props
+const base = import.meta.env.BASE_URL
+const tipLabel = city.tipCount === 1 ? '1 tip' : `${city.tipCount} tips`
+---
+
+<article class="city-card">
+  <p class="code">{city.airportCode}</p>
+  <h2><a href={`${base}cities/${city.slug}`}>{city.name}</a></h2>
+  <p class="meta">{city.country}</p>
+  <p class="meta">{city.currency} · {city.timezone}</p>
+  <p class="meta">{tipLabel}</p>
+</article>

@@ -1,0 +1,26 @@
+---
+description: Sanity content model and official Cursor wiring for Crew Layover Guide
+globs:
+  - sanity.config.ts
+  - sanity.cli.ts
+  - src/sanity/**/*
+  - src/lib/queries.ts
+  - src/lib/content.ts
+  - seed/**/*
+alwaysApply: false
+---
+
+This site is Astro plus Sanity. `city` and `tip` are the only document types.
+
+- Schemas live in `src/sanity/schemaTypes/`.
+- GROQ queries live in `src/lib/queries.ts` and use `defineQuery` so `npm run typegen` can type them.
+- Do not put a Sanity token in a `PUBLIC_` or `SANITY_STUDIO_` variable.
+- Sample tips stay `isExample: true`, with titles that start `EXAMPLE:`, until a person replaces them with notes they have checked.
+
+Official Sanity wiring for Cursor, taken from current Sanity docs:
+
+- This repo's `.cursor/mcp.json` points at `https://mcp.sanity.io`. Cursor will ask for OAuth. The same server can be installed with `npx sanity@latest mcp configure`.
+- Agent skills install with `npx skills add sanity-io/agent-toolkit` (Node.js 22.20 or later). In Cursor chat, `/add-plugin sanity` installs the marketplace plugin.
+- Sanity's documentation index for agents is https://www.sanity.io/docs/llms.txt
+
+After a schema or query change, run `npm run typegen` and commit `schema.json` and `src/sanity/sanity.types.ts`.

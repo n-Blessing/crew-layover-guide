@@ -1,0 +1,193 @@
+---
+import Notice from '../../components/Notice.astro'
+import TipCard from '../../components/TipCard.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import {getCities, getCity} from '../../lib/content'
+import {heroImageUrl} from '../../lib/image'
+import {groupTips} from '../../lib/tips'
+
+export async function getStaticPaths() {
+  const result = await getCities()
+  if (!result.ok) {
+    throw new Error(`Could not build city pages: ${result.message}`)
+  }
+
+  return result.data
+    .filter((city) => Boolean(city.slug))
+    .map((city) => ({params: {slug: city.slug}}))
+}
+
+const {slug} = Astro.params
+if (!slug) {
+  throw new Error('City page is missing a slug.')
+}
+
+const result = await getCity(slug)
+if (!result.ok) {
+  throw new Error(`Could not load ${slug}: ${result.message}`)
+}
+
+const city = result.data
+const groups = city ? groupTips(city.tips) : []
+const hero = city ? heroImageUrl(city.hero) : null
+const heroAlt = city?.hero?.alt || (city ? `${city.name}, ${city.country}` : '')
+const hasExampleTips = city?.tips.some((tip) => tip.isExample) ?? false
+const base = import.meta.env.BASE_URL
+---
+
+<BaseLayout
+  title={city?.name ?? 'City not found'}
+  description={city?.summary ?? 'This layover city is not in the current dataset.'}
+>
+  <p><a class="back-link" href={`${base}#cities`}>All cities</a></p>
+
+  {
+    !city && (
+      <div class="empty">
+        <h1>This city is not in the dataset</h1>
+        <p>It may have been unpublished. Check Studio, or return to the city list.</p>
+      </div>
+    )
+  }
+
+  {
+    city && (
+      <>
+        <header class="city-hero">
+          {hero ? <img src={hero} alt={heroAlt} width="1600" height="900" /> : null}
+          <div class="city-hero-copy">
+            <p class="code">{city.airportCode}</p>
+            <h1>{city.name}</h1>
+            <p>{city.country}</p>
+          </div>
+        </header>
+
+        {result.source === 'example' && (
+          <Notice tone="example" title="Example notes">
+            <p>
+              This page is rendered from the sample dataset. The summary states which facts are
+              standard reference, and every tip is marked Example.
+            </p>
+          </Notice>
+        )}
+
+        {result.source === 'sanity' && hasExampleTips && (
+          <Notice tone="example" title="Some of these tips are still examples">
+            <p>
+              They came from the seed import. Rewrite a tip and turn off Example data in Studio
+              when the note is yours and you have checked it.
+            </p>
+          </Notice>
+        )}
+
+        <dl class="facts">
+          <div>
+            <dt>Airport</dt>
+            <dd>{city.airportCode}</dd>
+          </div>
+          <div>
+            <dt>Currency</dt>
+            <dd>{city.currency}</dd>
+          </div>
+          <div>
+            <dt>Timezone</dt>
+            <dd>{city.timezone}</dd>
+          </div>
+        </dl>
+
+        <p class="lede">{city.summary}</p>
+
+        <section id="tips" aria-labelledby="tips-heading">
+          <div class="section-heading">
+            <h2 id="tips-heading">Tips</h2>
+          </div>
+
+          {groups.length === 0 ? (
+            <div class="empty">
+              <p>No tips are published for {city.name} yet. Add one in Studio, linked to this city.</p>
+            </div>
+          ) : (
+            <>
+              <nav class="filters" data-tip-filter aria-label="Filter tips by category">
+                <a href={`${base}cities/${city.slug}#tips`} data-filter="all" aria-current="true">All</a>
+                {groups.map((group) => (
+                  <a
+                    href={`${base}cities/${city.slug}?category=${group.value}#tips-${group.value}`}
+                    data-filter={group.value}
+                  >
+                    {group.title}
+                  </a>
+                ))}
+              </nav>
+              <p id="filter-status" class="filter-status" aria-live="polite">
+                All categories are listed below.
+              </p>
+
+              {groups.map((group) => (
+                <section
+                  class="tip-group"
+                  id={`tips-${group.value}`}
+                  data-tip-group={group.value}
+                  aria-labelledby={`heading-${group.value}`}
+                >
+                  <h3 id={`heading-${group.value}`}>{group.title}</h3>
+                  <p>{group.description}</p>
+                  <ul class="tip-list">
+                    {group.tips.map((tip) => (
+                      <li>
+                        <TipCard tip={tip} />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </>
+          )}
+        </section>
+      </>
+    )
+  }
+</BaseLayout>
+
+<script>
+  const root = document.querySelector('[data-tip-filter]')
+  if (root) {
+    const links = [...root.querySelectorAll<HTMLAnchorElement>('[data-filter]')]
+    const groups = [...document.querySelectorAll<HTMLElement>('[data-tip-group]')]
+    const status = document.querySelector('#filter-status')
+
+    const apply = (filter: string) => {
+      const known = links.some((link) => link.dataset.filter === filter)
+      const active = known ? filter : 'all'
+      for (const group of groups) {
+        group.hidden = active !== 'all' && group.dataset.tipGroup !== active
+      }
+      for (const link of links) {
+        if (link.dataset.filter === active) link.setAttribute('aria-current', 'true')
+        else link.removeAttribute('aria-current')
+      }
+      if (status) {
+        const label = links.find((link) => link.dataset.filter === active)?.textContent?.trim()
+        status.textContent = active === 'all' ? 'Showing all tips.' : `Showing ${label ?? 'this category'} tips.`
+      }
+    }
+
+    const current = () => new URLSearchParams(location.search).get('category') ?? 'all'
+    apply(current())
+
+    for (const link of links) {
+      link.addEventListener('click', (event) => {
+        const filter = link.dataset.filter ?? 'all'
+        const url = new URL(location.href)
+        if (filter === 'all') url.searchParams.delete('category')
+        else url.searchParams.set('category', filter)
+        url.hash = filter === 'all' ? 'tips' : `tips-${filter}`
+        history.pushState(null, '', url)
+        apply(filter)
+        event.preventDefault()
+      })
+    }
+
+    window.addEventListener('popstate', () => apply(current()))
+  }
+</script>

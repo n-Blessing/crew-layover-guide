@@ -1,0 +1,13 @@
+---
+interface Props {
+  tone: 'example' | 'sanity' | 'error'
+  title: string
+}
+
+const {tone, title} = Astro.props
+---
+
+<div class:list={['notice', `notice-${tone}`]} role={tone === 'error' ? 'alert' : 'note'}>
+  <p class="notice-title">{title}</p>
+  <slot />
+</div>

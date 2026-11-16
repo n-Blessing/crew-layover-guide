@@ -1,0 +1,52 @@
+{
+  "name": "crew-layover-guide",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0 --port 4477",
+    "dev:studio": "sanity dev --port 3333",
+    "build": "astro build",
+    "preview": "astro preview --host 0.0.0.0 --port 4477",
+    "astro": "astro",
+    "typegen": "sanity schema extract --enforce-required-fields --force && sanity typegen generate",
+    "schema:validate": "sanity schemas validate --level error",
+    "typecheck": "astro check",
+    "lint": "eslint .",
+    "validate:seed": "node scripts/validate-seed.mjs",
+    "check:help": "node --experimental-strip-types scripts/check-crew-help.mjs",
+    "seed:write": "node scripts/generate-example-seed.mjs",
+    "check": "npm run validate:seed && npm run check:help && npm run schema:validate && npm run typecheck && npm run lint"
+  },
+  "dependencies": {
+    "@astrojs/react": "^7.1.9",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/public-sans": "^5.3.0",
+    "@portabletext/astro": "^0.2.0",
+    "@sanity/astro": "^3.6.2",
+    "@sanity/client": "^8.16.0",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/vision": "^6.23.0",
+    "astro": "^7.4.12",
+    "groq": "^6.23.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-is": "^19.3.1",
+    "sanity": "^6.23.0",
+    "styled-components": "^6.6.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/react-is": "^19.3.0",
+    "eslint": "^10.15.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.2"
+  }
+}

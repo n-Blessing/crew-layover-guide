@@ -1,0 +1,12 @@
+---
+description: Agent content edits stay in a Sanity Content Release until a person publishes them
+alwaysApply: true
+---
+
+When you add or edit layover cities or tips through the Sanity MCP server (`https://mcp.sanity.io`):
+
+- Call `create_release` first. That tool does not schedule or publish the release.
+- Write the documents into that release with `create_documents` and its `releaseId`, or with `create_version`. Do not create published documents.
+- Do not call `publish_documents`. Do not publish, schedule, archive, or delete the release. Publishing a release is not available from the MCP server. A person does it in Studio.
+- New sample copy stays `isExample: true`, and tip titles start with `EXAMPLE:`.
+- The public site queries with the `published` perspective and skips `drafts.**` and `versions.**`, so a release stays off the site until it is published and the site is rebuilt.

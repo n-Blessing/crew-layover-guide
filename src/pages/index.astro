@@ -1,0 +1,87 @@
+---
+import CityCard from '../components/CityCard.astro'
+import Notice from '../components/Notice.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import {getCities} from '../lib/content'
+
+const result = await getCities()
+const cities = result.ok ? result.data : []
+const errorMessage = result.ok ? '' : result.message
+---
+
+<BaseLayout
+  title="Crew Layover Guide"
+  description="A small layover guide for cabin crew: cities, short tips, and notes you can edit in Sanity Studio."
+>
+  <section class="hero-copy">
+    <p class="kicker">Kigali · cabin crew field notes</p>
+    <h1>The hours between flights</h1>
+    <p class="lede">
+      Browse a layover city, then read what might fit before report: a way into town, a meal, a rest
+      block, a short outing. Edit the notes in Sanity Studio. The copy shipped with this repo is
+      marked Example until you replace it with something you have checked.
+    </p>
+  </section>
+
+  {
+    !result.ok && (
+      <Notice tone="error" title="Sanity did not load">
+        <p>
+          The site is configured with a project id, but the request failed. Check the id, the
+          dataset name, and that the dataset is public, or that the build has a read token.
+        </p>
+        <p>{errorMessage}</p>
+      </Notice>
+    )
+  }
+
+  {
+    result.ok && result.source === 'example' && (
+      <Notice tone="example" title="Showing the example dataset">
+        <p>
+          The configured dataset has no published cities yet, so these pages are using{' '}
+          <code>seed/seed.ndjson</code>. Import that file into production, then publish, to replace
+          these example notes.
+        </p>
+      </Notice>
+    )
+  }
+
+  {
+    result.ok && result.source === 'sanity' && (
+      <Notice tone="sanity" title="Published from Sanity">
+        <p>
+          These cities come from your dataset. Tips marked Example are still the sample copy from
+          the seed until you rewrite them.
+        </p>
+      </Notice>
+    )
+  }
+
+  <section id="cities" aria-labelledby="cities-heading">
+    <div class="section-heading">
+      <h2 id="cities-heading">Layover cities</h2>
+      <p>{cities.length === 1 ? '1 city' : `${cities.length} cities`}</p>
+    </div>
+
+    {
+      result.ok && cities.length === 0 && (
+        <div class="empty">
+          <p>No cities are published yet. Import the example dataset, or add a city in Studio.</p>
+        </div>
+      )
+    }
+
+    {
+      cities.length > 0 && (
+        <ul class="city-grid">
+          {cities.map((city) => (
+            <li>
+              <CityCard city={city} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+</BaseLayout>

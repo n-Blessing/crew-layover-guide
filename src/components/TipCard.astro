@@ -1,0 +1,33 @@
+---
+import {PortableText} from '@portabletext/astro'
+import {costLabel} from '../lib/categories'
+import type {TipDetail} from '../lib/example-data'
+
+interface Props {
+  tip: TipDetail
+}
+
+const {tip} = Astro.props
+---
+
+<article class="tip" data-category={tip.category} id={`tip-${tip._id}`}>
+  {tip.isExample ? <p class="badge">Example</p> : null}
+  <h4>{tip.title}</h4>
+  <dl class="tip-meta">
+    <div>
+      <dt>Time</dt>
+      <dd>{tip.timeNeeded}</dd>
+    </div>
+    <div>
+      <dt>Cost</dt>
+      <dd>{costLabel(tip.costLevel)}</dd>
+    </div>
+  </dl>
+  <div class="prose">
+    {tip.body?.length ? (
+      <PortableText value={tip.body} />
+    ) : (
+      <p>This tip has no text yet.</p>
+    )}
+  </div>
+</article>

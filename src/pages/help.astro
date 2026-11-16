@@ -1,0 +1,127 @@
+---
+import Notice from '../components/Notice.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import {getHelpTips} from '../lib/content'
+
+const result = await getHelpTips()
+const tips = result.ok ? result.data : []
+const errorMessage = result.ok ? '' : result.message
+const tipsJson = JSON.stringify(tips).replaceAll('<', '\\u003c')
+---
+
+<BaseLayout
+  title="Crew Help"
+  description="Ask a layover question. Crew Help answers only from published tips, or tells you to ask your purser."
+>
+  <section class="hero-copy">
+    <p class="kicker">Published tips only</p>
+    <h1>Crew Help</h1>
+    <p class="lede">
+      Ask about a city on this site. The answer is a published tip, with a link back to it. Drafts
+      and Content Releases are not included. If nothing on the site matches, ask your purser.
+    </p>
+  </section>
+
+  {
+    !result.ok && (
+      <Notice tone="error" title="Published tips did not load">
+        <p>{errorMessage}</p>
+      </Notice>
+    )
+  }
+
+  {
+    result.ok && result.source === 'example' && (
+      <Notice tone="example" title="Searching the example tips">
+        <p>
+          The configured dataset has no published tips yet, so Crew Help is searching{' '}
+          <code>seed/seed.ndjson</code>. Those tips are still marked Example.
+        </p>
+      </Notice>
+    )
+  }
+
+  <form id="crew-help-form" class="help-form">
+    <label for="question">Your question</label>
+    <input id="question" name="question" type="text" required maxlength="200" autocomplete="off" />
+    <button type="submit">Ask</button>
+  </form>
+
+  <div class="help-examples" aria-label="Sample questions">
+    <button type="button" data-question="How do I get from Brussels airport into the city?">
+      Brussels airport
+    </button>
+    <button type="button" data-question="What should I know about heat in Dubai?">Dubai heat</button>
+    <button type="button" data-question="Where is a nightclub in Tokyo?">Tokyo</button>
+  </div>
+
+  <div id="crew-help-answer" class="answer" aria-live="polite"></div>
+
+  <noscript>
+    <p>Turn on JavaScript to search the tips. You can also browse the city pages.</p>
+  </noscript>
+
+  <script type="application/json" id="crew-help-tips" set:html={tipsJson} />
+</BaseLayout>
+
+<script>
+  import {categoryLabel} from '../lib/categories'
+  import {PURSER_FALLBACK, answerQuestion, type HelpTip} from '../lib/crew-help'
+
+  const data = document.querySelector('#crew-help-tips')
+  const form = document.querySelector('#crew-help-form')
+  const output = document.querySelector('#crew-help-answer')
+  const questionInput = document.querySelector('#question')
+
+  if (
+    data instanceof HTMLScriptElement &&
+    form instanceof HTMLFormElement &&
+    output instanceof HTMLElement &&
+    questionInput instanceof HTMLInputElement
+  ) {
+    const tips = JSON.parse(data.textContent ?? '[]') as HelpTip[]
+
+    const show = (question: string) => {
+      const result = answerQuestion(tips, question)
+      output.replaceChildren()
+      if (!result.matched) {
+        const fallback = document.createElement('p')
+        fallback.textContent = PURSER_FALLBACK
+        output.append(fallback)
+        return
+      }
+
+      const quote = document.createElement('blockquote')
+      quote.textContent = result.tip.text
+
+      const cite = document.createElement('p')
+      const link = document.createElement('a')
+      link.href = `${import.meta.env.BASE_URL}cities/${result.tip.citySlug}#tip-${result.tip.id}`
+      link.textContent = result.tip.title
+      cite.append(
+        'From the published tip ',
+        link,
+        ` in ${result.tip.cityName}, under ${categoryLabel(result.tip.category)}.`,
+      )
+
+      output.append(quote, cite)
+      if (result.tip.isExample) {
+        const note = document.createElement('p')
+        note.textContent = 'This tip is still marked Example. Check it before you travel.'
+        output.append(note)
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault()
+      show(questionInput.value)
+    })
+
+    for (const button of document.querySelectorAll<HTMLButtonElement>('[data-question]')) {
+      button.addEventListener('click', () => {
+        questionInput.value = button.dataset.question ?? ''
+        show(questionInput.value)
+      })
+    }
+  }
+</script>
