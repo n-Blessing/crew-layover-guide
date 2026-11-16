@@ -15,7 +15,8 @@ This site is Astro plus Sanity. `city` and `tip` are the only document types.
 - Schemas live in `src/sanity/schemaTypes/`.
 - GROQ queries live in `src/lib/queries.ts` and use `defineQuery` so `npm run typegen` can type them.
 - Do not put a Sanity token in a `PUBLIC_` or `SANITY_STUDIO_` variable.
-- Sample tips stay `isExample: true`, with titles that start `EXAMPLE:`, until a person replaces them with notes they have checked.
+- Published content in project `p4yybrla`, dataset `production`, is crew-written: Accra, Brussels, Doha, Dubai, and Johannesburg (25 tips). The live site is https://n-blessing.github.io/crew-layover-guide/ and Studio is https://crew-layover-guide.sanity.studio/. `seed/seed.ndjson` (Brussels, Dubai, Lagos, Nairobi, `EXAMPLE:` titles) is only the offline fallback. Do not describe that seed as the published site.
+- New unverified sample tips stay `isExample: true`, with titles that start `EXAMPLE:`, until a person replaces them with notes they have checked. Crew-written published tips are not sample copy.
 
 Official Sanity wiring for Cursor, taken from current Sanity docs:
 

@@ -1,3 +1,6 @@
+# The live site is the gh-pages branch: dist/ at the branch root, plus .nojekyll,
+# pushed by hand. This workflow could not run because the GitHub account had
+# Actions locked over a billing issue, so it is not what published the current site.
 name: Deploy GitHub Pages
 
 on:

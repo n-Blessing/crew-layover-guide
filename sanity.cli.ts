@@ -10,8 +10,8 @@ export default defineCliConfig({
     dataset,
   },
   /**
-   * Suggested hostname for `npx sanity deploy`.
-   * The hosted Studio URL is https://crew-layover-guide.sanity.studio when that host is free.
+   * Hostname for `npx sanity deploy`.
+   * The hosted Studio is https://crew-layover-guide.sanity.studio.
    */
   studioHost,
   typegen: {
